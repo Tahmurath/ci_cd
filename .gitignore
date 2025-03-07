@@ -1,3 +1,4 @@
 gitea/
-jenkins/
+jenkins-data/
 mysql/
+registry/

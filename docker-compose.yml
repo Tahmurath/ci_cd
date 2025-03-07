@@ -2,7 +2,7 @@ version: "3"
 
 networks:
   gitea:
-    external: false
+    driver: bridge
 
 services:
   server:
@@ -43,7 +43,9 @@ services:
       - ./mysql:/var/lib/mysql
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
     container_name: jenkins
     restart: always
     networks:
@@ -52,9 +54,14 @@ services:
       - "8080:8080"
       - "50000:50000"
     volumes:
-      - ./jenkins:/var/jenkins_home
+      - ./jenkins-data:/var/jenkins_home  # دیتا توی ./jenkins-data ذخیره می‌شه
+      - /var/run/docker.sock:/var/run/docker.sock  # این خط رو اضافه کنید
+      - ~/.kube:/var/jenkins_home/.kube
     depends_on:
       - db
+    environment:
+      - GIT_URL=http://gitea:3000/gitea/golang.git
+      - DOCKER_HOST=tcp://host.docker.internal:2375
       
       
   localstack:
@@ -66,3 +73,12 @@ services:
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      
+  registry:
+    image: registry:2
+    container_name: local_registry
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./registry:/var/lib/registry
