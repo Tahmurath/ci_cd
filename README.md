@@ -39,8 +39,13 @@ git remote set-url origin http://hamidreza:deff24b76fd449547fe94ecc75eef635edb29
 
 - go app image build
 docker build -t my-go-app .
+docker build -t $IMAGE_NAME .
+
 docker tag my-app:latest localhost:5000/my-app:latest
+docker tag $IMAGE_NAME:$TAG ${REGISTRY}/${IMAGE_NAME}:${TAG}
+
 docker push localhost:5000/my-app:latest
+docker push ${REGISTRY}/${IMAGE_NAME}:${TAG}
 
 docker pull localhost:5000/my-app:latest
 docker run -d -p 8484:8484 localhost:5000/my-app:latest
@@ -78,7 +83,7 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = "localhost:5000"
+        REGISTRY = "host.docker.internal:5000"
         IMAGE_NAME = "my-app"
         TAG = "latest"
     }
@@ -86,25 +91,26 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'http://localhost:3000/gitea/golang.git'
+                git branch: 'main', url: 'http://gitea:3000/gitea/golang.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build and Push to Registry') {
             steps {
-                sh 'docker build -t $REGISTRY/$IMAGE_NAME:$TAG .'
+                sh "docker buildx build --push -t ${REGISTRY}/${IMAGE_NAME}:${TAG} ."
             }
         }
 
-        stage('Push to Local Registry') {
+        stage('Apply Kubernetes Manifests') {
             steps {
-                sh 'docker push $REGISTRY/$IMAGE_NAME:$TAG'
+                sh "kubectl apply -f /var/jenkins_home/.kube/my-app-deployment.yaml"
+                sh "kubectl apply -f /var/jenkins_home/.kube/my-app-service.yaml"
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl set image deployment/my-app my-app=$REGISTRY/$IMAGE_NAME:$TAG'
+                sh "kubectl set image deployment/my-app my-app=${REGISTRY}/${IMAGE_NAME}:${TAG} --record"
             }
         }
     }
@@ -132,14 +138,46 @@ spec:
           ports:
             - containerPort: 8080
 			
+
+- jenkins Generic Webhook Trigger plugin
+
+- jenkins Generic Webhook Trigger
+add token:
+46gh4564356g4363456g34654356587j67986789
+Request parameter
+
+
 			
 - gittea webhook http://jenkins:8080/gitea-webhook/post
+			     http://localhost:8080/gitea-webhook/post
+				 JENKINS_URL/generic-webhook-trigger/invoke
+				 
+- gitea config ./gitea/gitea/conf/
+[webhook]
+ALLOWED_HOST_LIST = jenkins,localhost
 
 
 - jenkins Poll SCM H/5 * * * *
+
 
 
 - jenkins docker plugin
 - jenkins cloud new cloud
 
 Expose daemon on tcp://localhost:2375 without TLS
+
+
+
+
+
+docker desktop => docker engine => "insecure-registries": ["host.docker.internal:5000"]
+
+
+
+
+kubectl get pods
+kubectl get deployment
+kubectl delete deployment my-app
+
+
+kubectl config view --minify --flatten > jenkins-data\.kube\config

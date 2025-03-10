@@ -16,6 +16,7 @@ services:
       - GITEA__database__NAME=gitea
       - GITEA__database__USER=gitea
       - GITEA__database__PASSWD=gitea
+      - GITEA__webhook__ALLOWED_HOST_LIST=jenkins,localhost
     restart: always
     networks:
       - gitea
@@ -55,8 +56,8 @@ services:
       - "50000:50000"
     volumes:
       - ./jenkins-data:/var/jenkins_home  # دیتا توی ./jenkins-data ذخیره می‌شه
-      - /var/run/docker.sock:/var/run/docker.sock  # این خط رو اضافه کنید
-      - ~/.kube:/var/jenkins_home/.kube
+      #- /var/run/docker.sock:/var/run/docker.sock  # این خط رو اضافه کنید
+      #- ~/kubectl:/var/jenkins_home/.kube
     depends_on:
       - db
     environment:
