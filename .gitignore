@@ -1,5 +1,7 @@
 gitea/
 jenkins-data/
+!jenkins-data/.kube/
+
 mysql/
 registry/
 app/

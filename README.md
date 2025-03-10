@@ -184,3 +184,7 @@ kubectl delete deployment my-app
 
 
 kubectl config view --minify --flatten > jenkins-data\.kube\config
+
+
+
+git add -f jenkins-data/.kube/

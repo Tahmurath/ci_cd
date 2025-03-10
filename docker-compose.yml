@@ -57,7 +57,7 @@ services:
     volumes:
       - ./jenkins-data:/var/jenkins_home  # دیتا توی ./jenkins-data ذخیره می‌شه
       #- /var/run/docker.sock:/var/run/docker.sock  # این خط رو اضافه کنید
-      #- ~/kubectl:/var/jenkins_home/.kube
+      #- ~/jenkins-kube:/var/jenkins_home/.kube
     depends_on:
       - db
     environment:
