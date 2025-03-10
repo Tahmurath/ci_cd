@@ -86,6 +86,7 @@ pipeline {
         REGISTRY = "host.docker.internal:5000"
         IMAGE_NAME = "my-app"
         TAG = "latest"
+		KUBECONFIG = "/var/jenkins_home/.kube/config"
     }
 
     stages {
@@ -111,6 +112,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh "kubectl set image deployment/my-app my-app=${REGISTRY}/${IMAGE_NAME}:${TAG} --record"
+                sh "kubectl rollout restart deployment/my-app"
+				sh "kubectl rollout status deployment/my-app"
             }
         }
     }
